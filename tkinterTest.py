@@ -26,7 +26,7 @@ canvas.create_image(600, 400, image=photoimage)
   
 # Display image
 #canvas1.create_image( 0, 0, image = ibg, 
-                     anchor = "nw")
+                   #  anchor = "nw")
   
 #gui['bg']='green'
 
