@@ -33,16 +33,19 @@ def connect_menu_init():
     graph.canvas = Canvas(root, width = 450, height = 300, bg="white", highlightthickness=0)
     graph.canvas.grid(row = 5, columnspan = 4, padx=25, pady=10)
     #Static Text
-    graph.inlet = graph.canvas.create_text(110,100, anchor = CENTER, font = ("Helvetica", "20"), text = "Inlet Pressure: ")
-    graph.outlet = graph.canvas.create_text(110,200, anchor = CENTER, font = ("Helvetica", "20"), text = "Outlet Pressure: ")
+    graph.inlet = graph.canvas.create_text(110,100, anchor = CENTER, font = ("Helvetica", "18"), text = "Inlet Pressure: ")
+    graph.outlet = graph.canvas.create_text(110,200, anchor = CENTER, font = ("Helvetica", "18"), text = "Outlet Pressure: ")
 
     #Dynamic Text
+    graph.p1Box = graph.canvas.create_rectangle(225,75,325,125,fill="white")
+    graph.p2Box = graph.canvas.create_rectangle(225,175,325,225,fill="white")
     graph.p1 = graph.canvas.create_text(275,100, anchor = CENTER, font = ("Helvetica", "20"), text = "---")
     graph.p2 = graph.canvas.create_text(275,200, anchor = CENTER, font = ("Helvetica", "20"), text = "---")
+   
 
     #Label Text
-    graph.p1Label = graph.canvas.create_text(400,100, anchor = CENTER, font = ("Helvetica", "20"), text = "mmHg")
-    graph.p2Label = graph.canvas.create_text(400,200, anchor = CENTER, font = ("Helvetica", "20"), text = "mmHg")
+    graph.p1Label = graph.canvas.create_text(400,100, anchor = CENTER, font = ("Helvetica", "18"), text = "mmHg")
+    graph.p2Label = graph.canvas.create_text(400,200, anchor = CENTER, font = ("Helvetica", "18"), text = "mmHg")
 
 def connect_check(args):
     if "-" in clicked_com.get() or "-" in clicked_bd.get():
@@ -92,21 +95,18 @@ def update_coms():
     drop_COM.grid(column = 2, row = 2, padx = 50)
     connect_check(0)
 
-
 def readSerial():
     global serialData, p1, p2, graph
     while serialData:
             data = ser.readline()
             data = str(data,'utf-8')
-            p1, p2 = data.split(';')
-            p1 = float(p1)
-            p2 = float(p2)
-            #print(p1, end=' ')
-            #print(p2)
             try:
+                p1, p2 = data.split(';')
+                p1 = float(p1)
+                p2 = float(p2)
                 graph.canvas.itemconfig(graph.p1, text= p1)
                 graph.canvas.itemconfig(graph.p2, text= p2)
-                #change_color()
+                change_color(float(p1), float(p2))
             except:
                 pass
 
@@ -118,6 +118,11 @@ def connection():
         refresh_btn["state"] = "active"
         drop_bd["state"] = "active"
         drop_COM["state"] = "active"
+        ser.close()
+        graph.canvas.itemconfig(graph.p1Box, fill= "white")
+        graph.canvas.itemconfig(graph.p2Box, fill= "white")
+        graph.canvas.itemconfig(graph.p1, text= "---")
+        graph.canvas.itemconfig(graph.p2, text= "---")
     else:
         serialData = True
         connect_btn["text"] = "Disconnect"
@@ -136,8 +141,14 @@ def connection():
         t1.start()
 
 #used to visualize a pressure difference
-#def change_color():
-#    graph.canvas.configure(bg="blue")
+def change_color(a, b):
+    if abs((a - b))  > 1 or abs((b-a)) > 1:
+        graph.canvas.itemconfig(graph.p1Box, fill= "red")
+        graph.canvas.itemconfig(graph.p2Box, fill= "red")
+    else:
+        #graph.canvas.configure(bg="green")
+        graph.canvas.itemconfig(graph.p1Box, fill= "green")
+        graph.canvas.itemconfig(graph.p2Box, fill= "green")
 
 connect_menu_init()
 
