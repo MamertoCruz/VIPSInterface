@@ -100,8 +100,9 @@ def update_coms():
 
 def readSerial():
     global serialData, p1, p2, graph
-    global inlet, outlet
-    #t = []
+    global tArray, inlet, outlet
+    tArray = []
+    t = 0;
     inlet = []
     outlet = []
     while serialData:
@@ -111,6 +112,8 @@ def readSerial():
                 p1, p2 = data.split(';')
                 p1 = float(p1)
                 p2 = float(p2)
+                t +=1
+                tArray.append(t)
                 inlet.append(p1)
                 outlet.append(p2)
                 graph.canvas.itemconfig(graph.p1, text= p1)
@@ -120,7 +123,7 @@ def readSerial():
                 pass
 
 def connection():
-    global ser, serialData, inlet, outlet
+    global ser, serialData, tArray, inlet, outlet
     if connect_btn["text"] in "Disconnect":
         serialData = False
         connect_btn["text"] = "Connect"
@@ -141,8 +144,8 @@ def connection():
         #used for validation purposes to be able to record inlet and outlet pressure values
         with open("pressure.csv", "w", newline="") as infile:
             writer = csv.writer(infile)
-            writer.writerow(["Inlet", "Outlet"])
-            for i in zip(inlet, outlet):
+            writer.writerow(["Time", "Inlet", "Outlet"])
+            for i in zip(tArray, inlet, outlet):
                 writer.writerow(i)
     else:
         serialData = True
