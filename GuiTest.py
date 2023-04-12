@@ -2,6 +2,10 @@ from tkinter import *
 import serial.tools.list_ports
 import threading
 import time
+import csv
+#import pandas as pd
+#import numpy as np
+#import array
 
 class Graphics():
     pass
@@ -23,7 +27,7 @@ def connect_menu_init():
     refresh_btn.grid(column = 3, row = 2, padx=(0,20))
 
     connect_btn = Button(root, text = "Connect", height = 2, 
-                         width = 10, state = "disabled", command = connection)
+                            width = 10, state = "disabled", command = connection)
     connect_btn.grid(column=3,row=4, padx=(0,20))
     baud_select()
     update_coms()
@@ -41,7 +45,6 @@ def connect_menu_init():
     graph.p2Box = graph.canvas.create_rectangle(225,175,325,225,fill="white")
     graph.p1 = graph.canvas.create_text(275,100, anchor = CENTER, font = ("Helvetica", "20"), text = "---")
     graph.p2 = graph.canvas.create_text(275,200, anchor = CENTER, font = ("Helvetica", "20"), text = "---")
-   
 
     #Label Text
     graph.p1Label = graph.canvas.create_text(400,100, anchor = CENTER, font = ("Helvetica", "18"), text = "mmHg")
@@ -57,21 +60,21 @@ def baud_select():
     global clicked_bd, drop_bd
     clicked_bd = StringVar()
     bds = ["-",
-           "300",
-           "600",
-           "1200",
-           "2400",
-           "4800",
-           "9600",
-           "14400",
-           "19200",
-           "28800",
-           "38400",
-           "56000",
-           "57600",
-           "115200",
-           "128000",
-           "256000"]
+            "300",
+            "600",
+            "1200",
+            "2400",
+            "4800",
+            "9600",
+            "14400",
+            "19200",
+            "28800",
+            "38400",
+            "56000",
+            "57600",
+            "115200",
+            "128000",
+            "256000"]
     clicked_bd.set(bds[6])
     drop_bd = OptionMenu(root, clicked_bd, *bds, command = connect_check)
     drop_bd.config(width = 20)
@@ -97,6 +100,10 @@ def update_coms():
 
 def readSerial():
     global serialData, p1, p2, graph
+    global inlet, outlet
+    #t = []
+    inlet = []
+    outlet = []
     while serialData:
             data = ser.readline()
             data = str(data,'utf-8')
@@ -104,6 +111,8 @@ def readSerial():
                 p1, p2 = data.split(';')
                 p1 = float(p1)
                 p2 = float(p2)
+                inlet.append(p1)
+                outlet.append(p2)
                 graph.canvas.itemconfig(graph.p1, text= p1)
                 graph.canvas.itemconfig(graph.p2, text= p2)
                 change_color(float(p1), float(p2))
@@ -111,7 +120,7 @@ def readSerial():
                 pass
 
 def connection():
-    global ser, serialData
+    global ser, serialData, inlet, outlet
     if connect_btn["text"] in "Disconnect":
         serialData = False
         connect_btn["text"] = "Connect"
@@ -123,6 +132,18 @@ def connection():
         graph.canvas.itemconfig(graph.p2Box, fill= "white")
         graph.canvas.itemconfig(graph.p1, text= "---")
         graph.canvas.itemconfig(graph.p2, text= "---")
+        #inlet = np.array(inlet)
+        #outlet = np.array(outlet)
+        #output = np.column_stack(inlet.flatten(), outlet.flatten())
+        #np.savetxt("pressure.csv", output, delimiter=" ", fmt="% 5d")
+        #print(inlet)
+        #print(outlet)
+        #used for validation purposes to be able to record inlet and outlet pressure values
+        with open("pressure.csv", "w", newline="") as infile:
+            writer = csv.writer(infile)
+            writer.writerow(["Inlet", "Outlet"])
+            for i in zip(inlet, outlet):
+                writer.writerow(i)
     else:
         serialData = True
         connect_btn["text"] = "Disconnect"
