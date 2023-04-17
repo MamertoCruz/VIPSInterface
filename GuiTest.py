@@ -14,7 +14,7 @@ def connect_menu_init():
     global root, connect_btn, refresh_btn, graph
     root = Tk()
     root.title("VIPS Pressure Readings")
-    root.geometry("500x500")
+    root.geometry("500x540")
     root.config(bg="white")
 
     port_label = Label(root, text = "Available Port(s): ", bg="white")
@@ -31,6 +31,9 @@ def connect_menu_init():
     connect_btn.grid(column=3,row=4, padx=(0,20))
     baud_select()
     update_coms()
+
+    exit_button = Button(root, text="Exit",height = 2, width = 10, command=close_window)
+    exit_button.grid(column=3,row=6, padx=(0,20))
 
     graph = Graphics()
 
@@ -102,7 +105,7 @@ def readSerial():
     global serialData, p1, p2, graph
     global tArray, inlet, outlet
     tArray = []
-    t = 0;
+    t = 0
     inlet = []
     outlet = []
     while serialData:
@@ -135,12 +138,7 @@ def connection():
         graph.canvas.itemconfig(graph.p2Box, fill= "white")
         graph.canvas.itemconfig(graph.p1, text= "---")
         graph.canvas.itemconfig(graph.p2, text= "---")
-        #inlet = np.array(inlet)
-        #outlet = np.array(outlet)
-        #output = np.column_stack(inlet.flatten(), outlet.flatten())
-        #np.savetxt("pressure.csv", output, delimiter=" ", fmt="% 5d")
-        #print(inlet)
-        #print(outlet)
+        
         #used for validation purposes to be able to record inlet and outlet pressure values
         with open("pressure.csv", "w", newline="") as infile:
             writer = csv.writer(infile)
@@ -174,6 +172,12 @@ def change_color(a, b):
         graph.canvas.itemconfig(graph.p1Box, fill= "green")
         graph.canvas.itemconfig(graph.p2Box, fill= "green")
 
+def close_window():
+    global root, serialData
+    serialData = False
+    root.destroy()
+
 connect_menu_init()
 
+root.protocol("WM_DELETE_WINDOW", close_window)
 root.mainloop()
