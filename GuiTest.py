@@ -12,29 +12,35 @@ class Graphics():
 
 def connect_menu_init():
     global root, connect_btn, refresh_btn, graph
+    #Create GUI Window
     root = Tk()
     root.title("VIPS Pressure Readings")
     root.geometry("500x540")
     root.config(bg="white")
 
+    #Port Dropdown and Label Creation
     port_label = Label(root, text = "Available Port(s): ", bg="white")
     port_label.grid(column = 1, row = 2, pady = 20, padx = 10)
 
     port_bd = Label(root, text = "Baude Rate: ", bg="white")
     port_bd.grid(column = 1, row = 3, pady = 20, padx = 10)
 
+    #Refresh button
     refresh_btn = Button(root, text = "Refresh", height = 2, width = 10, command = update_coms)
     refresh_btn.grid(column = 3, row = 2, padx=(0,20))
 
+    #Connect button
     connect_btn = Button(root, text = "Connect", height = 2, 
                             width = 10, state = "disabled", command = connection)
     connect_btn.grid(column=3,row=4, padx=(0,20))
-    baud_select()
-    update_coms()
+    baud_select() # baud select function
+    update_coms() # updating the COM port function
 
+    #exit button
     exit_button = Button(root, text="Exit",height = 2, width = 10, command=close_window)
     exit_button.grid(column=3,row=6, padx=(0,20))
 
+    #Inlet and Outlet Pressure Readings
     graph = Graphics()
 
     graph.canvas = Canvas(root, width = 450, height = 300, bg="white", highlightthickness=0)
@@ -53,12 +59,14 @@ def connect_menu_init():
     graph.p1Label = graph.canvas.create_text(400,100, anchor = CENTER, font = ("Helvetica", "18"), text = "mmHg")
     graph.p2Label = graph.canvas.create_text(400,200, anchor = CENTER, font = ("Helvetica", "18"), text = "mmHg")
 
+#Checks to see if both drop down options are selected
 def connect_check(args):
     if "-" in clicked_com.get() or "-" in clicked_bd.get():
         connect_btn["state"] = "disable"
     else:
         connect_btn["state"] = "active"
 
+#Creates a dropdown menu to select the baud rate of the Arduino
 def baud_select():
     global clicked_bd, drop_bd
     clicked_bd = StringVar()
@@ -83,6 +91,7 @@ def baud_select():
     drop_bd.config(width = 20)
     drop_bd.grid(column = 2, row = 3, padx = 50)
 
+#Creates the COMs dropdown menu
 def update_coms():
     global clicked_com, drop_COM
     ports = serial.tools.list_ports.comports()
@@ -101,13 +110,18 @@ def update_coms():
     drop_COM.grid(column = 2, row = 2, padx = 50)
     connect_check(0)
 
+#Function that reads in the serial data from the Arduino
 def readSerial():
     global serialData, p1, p2, graph
     global tArray, inlet, outlet
+    
+    #Used for graph creation for results
     tArray = []
     t = 0
     inlet = []
     outlet = []
+
+    #Loop that reads in data from Arduino until serialData = False (when disconnect is clicked or window is closed)
     while serialData:
             data = ser.readline()
             data = str(data,'utf-8')
@@ -115,16 +129,21 @@ def readSerial():
                 p1, p2 = data.split(';')
                 p1 = float(p1)
                 p2 = float(p2)
+
+                #graph creation
                 t +=1
                 tArray.append(t)
                 inlet.append(p1)
                 outlet.append(p2)
+
+                #updating the pressure readings and changing the color
                 graph.canvas.itemconfig(graph.p1, text= p1)
                 graph.canvas.itemconfig(graph.p2, text= p2)
                 change_color(float(p1), float(p2))
             except:
                 pass
 
+#Function that checks whether the connect button has been clicked
 def connection():
     global ser, serialData, tArray, inlet, outlet
     if connect_btn["text"] in "Disconnect":
@@ -153,6 +172,7 @@ def connection():
         drop_COM["state"] = "disabled"
         port = clicked_com.get()
         baud = clicked_bd.get()
+        #reading in from Arduino
         try:
             ser = serial.Serial(port, baud, timeout=10)
             time.sleep(2)
@@ -168,10 +188,10 @@ def change_color(a, b):
         graph.canvas.itemconfig(graph.p1Box, fill= "red")
         graph.canvas.itemconfig(graph.p2Box, fill= "red")
     else:
-        #graph.canvas.configure(bg="green")
         graph.canvas.itemconfig(graph.p1Box, fill= "green")
         graph.canvas.itemconfig(graph.p2Box, fill= "green")
 
+#function used to close APP
 def close_window():
     global root, serialData
     serialData = False
